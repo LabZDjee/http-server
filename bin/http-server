@@ -1,25 +1,34 @@
 #!/usr/bin/env node
 
+/* jshint esversion: 6 */
 'use strict';
 
-var colors     = require('colors/safe'),
-    os         = require('os'),
-    httpServer = require('../lib/http-server'),
-    portfinder = require('portfinder'),
-    opener     = require('opener'),
-    fs         = require('fs'),
-    argv       = require('minimist')(process.argv.slice(2));
-var ifaces = os.networkInterfaces();
+const {
+  info
+} = require('console');
+
+const defaultAddress = 'localhost';
+const defaultPort = '5000';
+const defaultPath = './htdocs';
+
+let colors = require('colors/safe'),
+  os = require('os'),
+  httpServer = require('../lib/http-server'),
+  portfinder = require('portfinder'),
+  opener = require('opener'),
+  fs = require('fs'),
+  argv = require('minimist')(process.argv.slice(2));
+let ifaces = os.networkInterfaces();
 
 process.title = 'http-server';
 
 if (argv.h || argv.help) {
   console.log([
     'usage: http-server [path] [options]',
-    '',
+    'default path: ' + defaultPath,
     'options:',
-    '  -p --port    Port to use [8080]',
-    '  -a           Address to use [0.0.0.0]',
+    '  -p --port    Port to use [' + defaultPort + ']',
+    '  -a           Address to use [ ' + defaultAddress + ' ], use 0.0.0.0 for listening on all local interfaces',
     '  -d           Show directory listings [true]',
     '  -i           Display autoIndex [true]',
     '  -g --gzip    Serve gzip files when possible [false]',
@@ -29,13 +38,13 @@ if (argv.h || argv.help) {
     '  -s --silent  Suppress log messages from output',
     '  --cors[=headers]   Enable CORS via the "Access-Control-Allow-Origin" header',
     '                     Optionally provide CORS headers list separated by commas',
-    '  -o [path]    Open browser window after starting the server.',
-    '               Optionally provide a URL path to open the browser window to.',
-    '  -c           Cache time (max-age) in seconds [3600], e.g. -c10 for 10 seconds.',
-    '               To disable caching, use -c-1.',
-    '  -t           Connections timeout in seconds [120], e.g. -t60 for 1 minute.',
+    '  -o [path]    Open browser window after starting the server',
+    '               Optionally provide a URL path to open the browser window to',
+    '  -c           Cache time (max-age) in seconds [3600], e.g. -c10 for 10 seconds',
+    '               To disable caching, use -c-1',
+    '  -t           Connections timeout in seconds [120], e.g. -t60 for 1 minute',
     '               To disable timeout, use -t0',
-    '  -U --utc     Use UTC time format in log messages.',
+    '  -U --utc     Use UTC time format in log messages',
     '  --log-ip     Enable logging of the client\'s IP address',
     '',
     '  -P --proxy         Fallback proxy if the request cannot be resolved. e.g.: http://someurl.com',
@@ -45,42 +54,45 @@ if (argv.h || argv.help) {
     '  --password   Password for basic authentication [none]',
     '               Can also be specified with the env variable NODE_HTTP_SERVER_PASSWORD',
     '',
-    '  -S --ssl     Enable https.',
-    '  -C --cert    Path to ssl cert file (default: cert.pem).',
-    '  -K --key     Path to ssl key file (default: key.pem).',
+    '  -S --ssl     Enable https',
+    '  -C --cert    Path to ssl cert file (default: cert.pem)',
+    '  -K --key     Path to ssl key file (default: key.pem)',
     '',
     '  -r --robots        Respond to /robots.txt [User-agent: *\\nDisallow: /]',
     '  --no-dotfiles      Do not show dotfiles',
-    '  -h --help          Print this list and exit.',
-    '  -v --version       Print the version and exit.'
+    '  -h --help          Print this list and exit',
+    '  -v --version       Print the version and exit'
   ].join('\n'));
   process.exit();
 }
 
-var port = argv.p || argv.port || parseInt(process.env.PORT, 10),
-    host = argv.a || '0.0.0.0',
-    ssl = argv.S || argv.ssl,
-    proxy = argv.P || argv.proxy,
-    utc = argv.U || argv.utc,
-    version = argv.v || argv.version,
-    logger;
+if (argv._[0] === undefined) {
+  argv._.push(defaultPath);
+}
+
+let port = argv.p || argv.port || parseInt(process.env.PORT, 10),
+  host = argv.a || defaultAddress,
+  ssl = argv.S || argv.ssl,
+  proxy = argv.P || argv.proxy,
+  utc = argv.U || argv.utc,
+  version = argv.v || argv.version,
+  logger;
 
 if (!argv.s && !argv.silent) {
   logger = {
     info: console.log,
     request: function (req, res, error) {
-      var date = utc ? new Date().toUTCString() : new Date();
-      var ip = argv['log-ip']
-          ? req.headers['x-forwarded-for'] || '' +  req.connection.remoteAddress
-          : '';
+      let date = utc ? new Date().toUTCString() : new Date();
+      let ip = argv['log-ip'] ?
+        req.headers['x-forwarded-for'] || '' + req.connection.remoteAddress :
+        '';
       if (error) {
         logger.info(
           '[%s] %s "%s %s" Error (%s): "%s"',
           date, ip, colors.red(req.method), colors.red(req.url),
           colors.red(error.status.toString()), colors.red(error.message)
         );
-      }
-      else {
+      } else {
         logger.info(
           '[%s] %s "%s %s" "%s"',
           date, ip, colors.cyan(req.method), colors.cyan(req.url),
@@ -89,8 +101,7 @@ if (!argv.s && !argv.silent) {
       }
     }
   };
-}
-else if (colors) {
+} else if (colors) {
   logger = {
     info: function () {},
     request: function () {}
@@ -103,18 +114,19 @@ if (version) {
 }
 
 if (!port) {
-  portfinder.basePort = 8080;
+  portfinder.basePort = defaultPort;
   portfinder.getPort(function (err, port) {
-    if (err) { throw err; }
+    if (err) {
+      throw err;
+    }
     listen(port);
   });
-}
-else {
+} else {
   listen(port);
 }
 
 function listen(port) {
-  var options = {
+  let options = {
     root: argv._[0],
     cache: argv.c,
     timeout: argv.t,
@@ -145,24 +157,22 @@ function listen(port) {
     };
     try {
       fs.lstatSync(options.https.cert);
-    }
-    catch (err) {
+    } catch (err) {
       logger.info(colors.red('Error: Could not find certificate ' + options.https.cert));
       process.exit(1);
     }
     try {
       fs.lstatSync(options.https.key);
-    }
-    catch (err) {
+    } catch (err) {
       logger.info(colors.red('Error: Could not find private key ' + options.https.key));
       process.exit(1);
     }
   }
 
-  var server = httpServer.createServer(options);
+  let server = httpServer.createServer(options);
   server.listen(port, host, function () {
-    var canonicalHost = host === '0.0.0.0' ? '127.0.0.1' : host,
-        protocol      = ssl ? 'https://' : 'http://';
+    let canonicalHost = host === '0.0.0.0' ? '127.0.0.1' : host,
+      protocol = ssl ? 'https://' : 'http://';
 
     logger.info([colors.yellow('Starting up http-server, serving '),
       colors.cyan(server.root),
@@ -170,10 +180,9 @@ function listen(port) {
       colors.yellow('\nAvailable on:')
     ].join(''));
 
-    if (argv.a && host !== '0.0.0.0') {
+    if (host !== '0.0.0.0') {
       logger.info(('  ' + protocol + canonicalHost + ':' + colors.green(port.toString())));
-    }
-    else {
+    } else {
       Object.keys(ifaces).forEach(function (dev) {
         ifaces[dev].forEach(function (details) {
           if (details.family === 'IPv4') {
@@ -189,7 +198,7 @@ function listen(port) {
 
     logger.info('Hit CTRL-C to stop the server');
     if (argv.o) {
-      var openUrl = protocol + canonicalHost + ':' + port;
+      let openUrl = protocol + canonicalHost + ':' + port;
       if (typeof argv.o === 'string') {
         openUrl += argv.o[0] === '/' ? argv.o : '/' + argv.o;
       }

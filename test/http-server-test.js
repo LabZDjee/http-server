@@ -1,9 +1,9 @@
 var assert = require('assert'),
-    path = require('path'),
-    fs = require('fs'),
-    vows = require('vows'),
-    request = require('request'),
-    httpServer = require('../lib/http-server');
+  path = require('path'),
+  fs = require('fs'),
+  vows = require('vows'),
+  request = require('request'),
+  httpServer = require('../lib/http-server');
 
 // Prevent vows from swallowing errors
 process.on('uncaughtException', console.error);
@@ -30,7 +30,7 @@ vows.describe('http-server').addBatch({
         request('http://127.0.0.1:8080/file', this.callback);
       },
       'status code should be 200': function (res) {
-        assert.equal(res.statusCode, 200);
+        assert.strictEqual(res.statusCode, 200);
       },
       'and file content': {
         topic: function (res, body) {
@@ -40,7 +40,7 @@ vows.describe('http-server').addBatch({
           });
         },
         'should match content of served file': function (err, file, body) {
-          assert.equal(body.trim(), file.trim());
+          assert.strictEqual(body.trim(), file.trim());
         }
       }
     },
@@ -49,7 +49,7 @@ vows.describe('http-server').addBatch({
         request('http://127.0.0.1:8080/404', this.callback);
       },
       'status code should be 404': function (res) {
-        assert.equal(res.statusCode, 404);
+        assert.strictEqual(res.statusCode, 404);
       }
     },
     'requesting /': {
@@ -57,7 +57,7 @@ vows.describe('http-server').addBatch({
         request('http://127.0.0.1:8080/', this.callback);
       },
       'should respond with index': function (err, res, body) {
-        assert.equal(res.statusCode, 200);
+        assert.strictEqual(res.statusCode, 200);
         assert.include(body, '/file');
         assert.include(body, '/canYouSeeMe');
       }
@@ -67,7 +67,7 @@ vows.describe('http-server').addBatch({
         request('http://127.0.0.1:8080/robots.txt', this.callback);
       },
       'should respond with status code 200 to /robots.txt': function (res) {
-        assert.equal(res.statusCode, 200);
+        assert.strictEqual(res.statusCode, 200);
       }
     },
     'and options include custom set http-headers...': {
@@ -75,8 +75,8 @@ vows.describe('http-server').addBatch({
         request('http://127.0.0.1:8080/', this.callback);
       },
       'should respond with headers set in options': function (err, res) {
-        assert.equal(res.headers['access-control-allow-origin'], '*');
-        assert.equal(res.headers['access-control-allow-credentials'], 'true');
+        assert.strictEqual(res.headers['access-control-allow-origin'], '*');
+        assert.strictEqual(res.headers['access-control-allow-credentials'], 'true');
       }
     },
     'and the server is set to proxy port 8081 to 8080, ': {
@@ -93,7 +93,7 @@ vows.describe('http-server').addBatch({
           request('http://127.0.0.1:8081/root/file', this.callback);
         },
         'status code should be the endpoint code 200': function (res) {
-          assert.equal(res.statusCode, 200);
+          assert.strictEqual(res.statusCode, 200);
         },
         'and file content': {
           topic: function (res, body) {
@@ -103,7 +103,7 @@ vows.describe('http-server').addBatch({
             });
           },
           'should match content of the served file': function (err, file, body) {
-            assert.equal(body.trim(), file.trim());
+            assert.strictEqual(body.trim(), file.trim());
           }
         }
       },
@@ -112,7 +112,7 @@ vows.describe('http-server').addBatch({
           request('http://127.0.0.1:8081/file', this.callback);
         },
         'status code should be the endpoint code 200': function (res) {
-          assert.equal(res.statusCode, 200);
+          assert.strictEqual(res.statusCode, 200);
         },
         'and file content': {
           topic: function (res, body) {
@@ -122,7 +122,7 @@ vows.describe('http-server').addBatch({
             });
           },
           'should match content of the proxied served file': function (err, file, body) {
-            assert.equal(body.trim(), file.trim());
+            assert.strictEqual(body.trim(), file.trim());
           }
         }
       },
@@ -157,7 +157,7 @@ vows.describe('http-server').addBatch({
         }, this.callback);
       },
       'status code should be 204': function (err, res) {
-        assert.equal(res.statusCode, 204);
+        assert.strictEqual(res.statusCode, 204);
       },
       'response Access-Control-Allow-Headers should contain X-Test': function (err, res) {
         assert.ok(res.headers['access-control-allow-headers'].split(/\s*,\s*/g).indexOf('X-Test') >= 0, 204);
@@ -187,8 +187,8 @@ vows.describe('http-server').addBatch({
         }, this.callback);
       },
       'response should be gzip compressed': function (err, res, body) {
-        assert.equal(res.statusCode, 200);
-        assert.equal(res.headers['content-encoding'], 'gzip');
+        assert.strictEqual(res.statusCode, 200);
+        assert.strictEqual(res.headers['content-encoding'], 'gzip');
       }
     },
     'and a request accepting only brotli is made': {
@@ -201,8 +201,8 @@ vows.describe('http-server').addBatch({
         }, this.callback);
       },
       'response should be brotli compressed': function (err, res, body) {
-        assert.equal(res.statusCode, 200);
-        assert.equal(res.headers['content-encoding'], 'br');
+        assert.strictEqual(res.statusCode, 200);
+        assert.strictEqual(res.headers['content-encoding'], 'br');
       }
     },
     'and a request accepting both brotli and gzip is made': {
@@ -215,8 +215,8 @@ vows.describe('http-server').addBatch({
         }, this.callback);
       },
       'response should be brotli compressed': function (err, res, body) {
-        assert.equal(res.statusCode, 200);
-        assert.equal(res.headers['content-encoding'], 'br');
+        assert.strictEqual(res.statusCode, 200);
+        assert.strictEqual(res.headers['content-encoding'], 'br');
       }
     },
     teardown: function (server) {
@@ -244,7 +244,7 @@ vows.describe('http-server').addBatch({
         request('http://127.0.0.1:8083/file', this.callback);
       },
       'status code should be 401': function (res) {
-        assert.equal(res.statusCode, 401);
+        assert.strictEqual(res.statusCode, 401);
       },
       'and file content': {
         topic: function (res, body) {
@@ -254,7 +254,7 @@ vows.describe('http-server').addBatch({
           });
         },
         'should be a forbidden message': function (err, file, body) {
-          assert.equal(body, 'Access denied');
+          assert.strictEqual(body, 'Access denied');
         }
       }
     },
@@ -268,7 +268,7 @@ vows.describe('http-server').addBatch({
         }, this.callback);
       },
       'status code should be 401': function (res) {
-        assert.equal(res.statusCode, 401);
+        assert.strictEqual(res.statusCode, 401);
       },
       'and file content': {
         topic: function (res, body) {
@@ -278,7 +278,7 @@ vows.describe('http-server').addBatch({
           });
         },
         'should be a forbidden message': function (err, file, body) {
-          assert.equal(body, 'Access denied');
+          assert.strictEqual(body, 'Access denied');
         }
       }
     },
@@ -292,7 +292,7 @@ vows.describe('http-server').addBatch({
         }, this.callback);
       },
       'status code should be 401': function (res) {
-        assert.equal(res.statusCode, 401);
+        assert.strictEqual(res.statusCode, 401);
       },
       'and file content': {
         topic: function (res, body) {
@@ -302,7 +302,7 @@ vows.describe('http-server').addBatch({
           });
         },
         'should be a forbidden message': function (err, file, body) {
-          assert.equal(body, 'Access denied');
+          assert.strictEqual(body, 'Access denied');
         }
       }
     },
@@ -316,7 +316,7 @@ vows.describe('http-server').addBatch({
         }, this.callback);
       },
       'status code should be 401': function (res) {
-        assert.equal(res.statusCode, 401);
+        assert.strictEqual(res.statusCode, 401);
       },
       'and file content': {
         topic: function (res, body) {
@@ -326,7 +326,7 @@ vows.describe('http-server').addBatch({
           });
         },
         'should be a forbidden message': function (err, file, body) {
-          assert.equal(body, 'Access denied');
+          assert.strictEqual(body, 'Access denied');
         }
       }
     },
@@ -340,7 +340,7 @@ vows.describe('http-server').addBatch({
         }, this.callback);
       },
       'status code should be 200': function (res) {
-        assert.equal(res.statusCode, 200);
+        assert.strictEqual(res.statusCode, 200);
       },
       'and file content': {
         topic: function (res, body) {
@@ -350,7 +350,7 @@ vows.describe('http-server').addBatch({
           });
         },
         'should match content of served file': function (err, file, body) {
-          assert.equal(body.trim(), file.trim());
+          assert.strictEqual(body.trim(), file.trim());
         }
       }
     },
@@ -372,7 +372,7 @@ vows.describe('http-server').addBatch({
         request('http://127.0.0.1:8085/htmlButNot', this.callback);
       },
       'content-type should be text/html': function (res) {
-        assert.equal(res.statusCode, 200);
+        assert.strictEqual(res.statusCode, 200);
         assert.match(res.headers['content-type'], /^text\/html/);
       }
     },
@@ -401,7 +401,7 @@ vows.describe('http-server').addBatch({
         request('http://127.0.0.1:8086/file', this.callback);
       },
       'status code should be 401': function (res) {
-        assert.equal(res.statusCode, 401);
+        assert.strictEqual(res.statusCode, 401);
       },
       'and file content': {
         topic: function (res, body) {
@@ -411,7 +411,7 @@ vows.describe('http-server').addBatch({
           });
         },
         'should be a forbidden message': function (err, file, body) {
-          assert.equal(body, 'Access denied');
+          assert.strictEqual(body, 'Access denied');
         }
       }
     },
@@ -425,7 +425,7 @@ vows.describe('http-server').addBatch({
         }, this.callback);
       },
       'status code should be 401': function (res) {
-        assert.equal(res.statusCode, 401);
+        assert.strictEqual(res.statusCode, 401);
       },
       'and file content': {
         topic: function (res, body) {
@@ -435,7 +435,7 @@ vows.describe('http-server').addBatch({
           });
         },
         'should be a forbidden message': function (err, file, body) {
-          assert.equal(body, 'Access denied');
+          assert.strictEqual(body, 'Access denied');
         }
       }
     },
@@ -449,7 +449,7 @@ vows.describe('http-server').addBatch({
         }, this.callback);
       },
       'status code should be 401': function (res) {
-        assert.equal(res.statusCode, 401);
+        assert.strictEqual(res.statusCode, 401);
       },
       'and file content': {
         topic: function (res, body) {
@@ -459,7 +459,7 @@ vows.describe('http-server').addBatch({
           });
         },
         'should be a forbidden message': function (err, file, body) {
-          assert.equal(body, 'Access denied');
+          assert.strictEqual(body, 'Access denied');
         }
       }
     },
@@ -473,7 +473,7 @@ vows.describe('http-server').addBatch({
         }, this.callback);
       },
       'status code should be 401': function (res) {
-        assert.equal(res.statusCode, 401);
+        assert.strictEqual(res.statusCode, 401);
       },
       'and file content': {
         topic: function (res, body) {
@@ -483,7 +483,7 @@ vows.describe('http-server').addBatch({
           });
         },
         'should be a forbidden message': function (err, file, body) {
-          assert.equal(body, 'Access denied');
+          assert.strictEqual(body, 'Access denied');
         }
       }
     },
@@ -497,7 +497,7 @@ vows.describe('http-server').addBatch({
         }, this.callback);
       },
       'status code should be 200': function (res) {
-        assert.equal(res.statusCode, 200);
+        assert.strictEqual(res.statusCode, 200);
       },
       'and file content': {
         topic: function (res, body) {
@@ -507,7 +507,7 @@ vows.describe('http-server').addBatch({
           });
         },
         'should match content of served file': function (err, file, body) {
-          assert.equal(body.trim(), file.trim());
+          assert.strictEqual(body.trim(), file.trim());
         }
       }
     },

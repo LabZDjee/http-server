@@ -2,3 +2,5 @@ node_modules/
 npm-debug.log*
 .dir-locals.el
 .DS_Store
+*.exe
+pkg-binaries/
